@@ -1,19 +1,22 @@
 #[macro_use]
 extern crate clap;
+extern crate chrono;
+extern crate chrono_tz;
+#[macro_use(lazy_static)]
+extern crate lazy_static;
+extern crate regex;
 
 mod parser;
 
 use clap::{App, AppSettings, Arg};
-use parser::{Parser, UTCParser};
+use parser::Parser;
 use std::io;
 use std::io::BufRead;
 
 fn run(timezone: &str) {
     let stdin = io::stdin();
 
-    let p = UTCParser {
-        target_tz: String::from(timezone),
-    };
+    let p = parser::new_utcparser(timezone);
 
     for line in stdin.lock().lines() {
         match line {

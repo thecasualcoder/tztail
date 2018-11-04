@@ -7,6 +7,7 @@ authors = ["Aswin Karthik <aswinkarthik93@gmail.com>"]
 regex = "1"
 chrono = "0.4"
 chrono-tz = "0.5"
+lazy_static = "1.1.0"
 
 [dependencies.clap]
 version = "2"
