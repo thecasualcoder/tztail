@@ -13,15 +13,13 @@ use parser::Parser;
 use std::io;
 use std::io::BufRead;
 
-fn run(timezone: &str) {
+fn run<P: Parser>(p: P) {
     let stdin = io::stdin();
-
-    let p = parser::new_utcparser(timezone);
 
     for line in stdin.lock().lines() {
         match line {
             Ok(content) => println!("{}", p.parse(&content)),
-            Err(err) => println!("{}", err),
+            Err(err) => eprintln!("{}", err),
         }
     }
 }
@@ -42,10 +40,22 @@ fn main() {
                 .required(true)
                 .takes_value(true)
                 .help("Sets the timezone in which output should be printed"),
+        ).arg(
+            Arg::with_name("format")
+                .long("format")
+                .short("f")
+                .value_name("FORMAT")
+                .required(false)
+                .takes_value(true)
+                .help("Custom format for parsing dates"),
         );
 
     let matches = app.get_matches();
     let timezone = matches.value_of("timezone").expect("Please pass timezone");
+    let custom_format = matches.value_of("format");
 
-    run(timezone);
+    match custom_format {
+        Some(format) => run(parser::new_fixedformatutcparser(timezone, format)),
+        None => run(parser::new_utcparser(timezone)),
+    };
 }
