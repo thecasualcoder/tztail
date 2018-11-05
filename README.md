@@ -1,5 +1,7 @@
 # tztail
 
+[![Build Status](https://travis-ci.org/thecasualcoder/tztail.svg?branch=master)](https://travis-ci.org/thecasualcoder/tztail)
+
 tztail (TimeZoneTAIL) allows you to view logs in the timezone you want.
 
 > This project is work in progress
