@@ -65,11 +65,31 @@ $ cat somelog | tztail -t Asia/Kolkata -f "%Y-%m-%d %H:%M:%S"
 | Nginx Log format      | 04/Nov/2018:12:13:49            |
 | %Y-%m-%d %H:%M:%S.%6f | 2018-11-03 12:19:36.361297      |
 
+## Building from source
+
+Checkout the code and build locally
+
+```bash
+$ git clone https://github.com/thecasualcoder/tztail
+$ cd tztail
+
+# To build binary locally
+$ cargo build --release
+
+# To install binary locally in Cargo bin path
+$ cargo install
+
+# To run tests
+$ cargo test
+```
+
 ## Roadmap
 
 * [x] Support all standard datetime formats.
 * [x] Allow custom datetime format.
+* [ ] Add option to read from file.
 * [ ] Allow specifying source timezone (currently supports only UTC).
 * [ ] Auto-detect source timezone if possible.
-* [ ] Add option to read from file.
+* [ ] Support GCP/AWS cloud logging formats.
 * [ ] Performance optimizations
+* [ ] Add support to pass time-window which would only show the logs in that time period
