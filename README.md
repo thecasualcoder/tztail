@@ -55,7 +55,6 @@ $ cat somelog | tztail -t Asia/Kolkata -f "%Y-%m-%d %H:%M:%S"
 
 ## Features
 
-- It reads from _STDIN_ as of now.
 - Supports few standard formats with which auto detection is done when parsing logs.
 - Supports specifying custom format for parsing in case it is a non-standard format. See [here](https://docs.rs/chrono/0.4.6/chrono/format/strftime/index.html#specifiers) for formats.
 
@@ -90,7 +89,7 @@ $ cargo test
 
 * [x] Support all standard datetime formats.
 * [x] Allow custom datetime format.
-* [ ] Add option to read from file.
+* [x] Add option to read from file.
 * [ ] Allow specifying source timezone (currently supports only UTC).
 * [ ] Auto-detect source timezone if possible.
 * [ ] Support GCP/AWS cloud logging formats.
