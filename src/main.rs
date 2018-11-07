@@ -10,18 +10,34 @@ mod parser;
 
 use clap::{App, AppSettings, Arg};
 use parser::Parser;
+use std::error::Error;
+use std::fs::File;
 use std::io;
-use std::io::BufRead;
+use std::io::{BufRead, BufReader};
+use std::process;
 
-fn run<P: Parser>(p: P) {
+fn run<P: Parser>(filename: Option<&str>, p: P) -> Result<bool, &str> {
     let stdin = io::stdin();
 
-    for line in stdin.lock().lines() {
+    let reader: Box<dyn BufRead> = match filename {
+        Some(name) => {
+            let file = File::open(name).expect("Error opening file");
+            Box::new(BufReader::new(file))
+        }
+        None => Box::new(stdin.lock()),
+    };
+
+    for line in reader.lines() {
         match line {
             Ok(content) => println!("{}", p.parse(&content)),
-            Err(err) => eprintln!("{}", err),
+            Err(err) => {
+                eprintln!("{}: {}", "Exited while reading lines", err.description());
+                return Err("Exited while reading lines");
+            }
         }
     }
+
+    return Ok(true);
 }
 
 fn main() {
@@ -32,6 +48,7 @@ fn main() {
         .setting(AppSettings::UnifiedHelpMessage)
         .version(crate_version!())
         .about("tztail (TimeZoneTAIL) allows you to view logs in the timezone you want")
+        .arg(Arg::with_name("FILE").help("File to tail"))
         .arg(
             Arg::with_name("timezone")
                 .long("timezone")
@@ -53,9 +70,19 @@ fn main() {
     let matches = app.get_matches();
     let timezone = matches.value_of("timezone").expect("Please pass timezone");
     let custom_format = matches.value_of("format");
+    let filename = matches.value_of("FILE");
 
-    match custom_format {
-        Some(format) => run(parser::new_fixedformatutcparser(timezone, format)),
-        None => run(parser::new_utcparser(timezone)),
+    let result = match custom_format {
+        Some(format) => run(filename, parser::new_fixedformatutcparser(timezone, format)),
+        None => run(filename, parser::new_utcparser(timezone)),
     };
+
+    match result {
+        Err(error) => {
+            eprintln!("{}: {}", "Exited non-successfully", error);
+            process::exit(1);
+        }
+        Ok(false) => process::exit(1),
+        Ok(true) => process::exit(0),
+    }
 }
