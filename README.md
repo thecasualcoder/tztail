@@ -9,17 +9,20 @@ tztail (TimeZoneTAIL) allows you to view logs in the timezone you want.
 ## Usage
 
 ```bash
-tztail 0.1.0
+tztail 0.1.1
 tztail (TimeZoneTAIL) allows you to view logs in the timezone you want
 
 USAGE:
-    tztail --timezone <TIMEZONE>
+    tztail --timezone <TIMEZONE> [FILE]
 
 OPTIONS:
     -t, --timezone <TIMEZONE>    Sets the timezone in which output should be printed
     -f, --format <FORMAT>        Custom format for parsing dates
     -h, --help                   Prints help information
     -V, --version                Prints version information
+
+ARGS:
+    <FILE>    File to tail
 ```
 
 ## Usecase
