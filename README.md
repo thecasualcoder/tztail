@@ -2,7 +2,14 @@
 
 [![Build Status](https://travis-ci.org/thecasualcoder/tztail.svg?branch=master)](https://travis-ci.org/thecasualcoder/tztail)
 
-tztail (TimeZoneTAIL) allows you to view logs in the timezone you want.
+tztail (TimeZoneTAIL) allows you to view logs in the timezone you want. Its tail with timezone.
+
+## Install
+
+```
+brew tap thecasualcoder/stable
+brew install tztail
+```
 
 ## Usage
 
