@@ -4,26 +4,46 @@
 
 tztail (TimeZoneTAIL) allows you to view logs in the timezone you want.
 
-> This project is work in progress
-
 ## Usage
 
 ```bash
-tztail 0.1.1
+$ tztail --help
+tztail 1.0.0
 tztail (TimeZoneTAIL) allows you to view logs in the timezone you want
 
 USAGE:
-    tztail --timezone <TIMEZONE> [FILE]
+    tztail [FILE]
 
 OPTIONS:
-    -t, --timezone <TIMEZONE>    Sets the timezone in which output should be printed
-    -f, --format <FORMAT>        Custom format for parsing dates
+    -t, --timezone <TIMEZONE>    Sets the timezone in which output should be printed. (Default: local timezone)
+    -f, --format <FORMAT>        Custom format for parsing dates. (Default: autodetected patterns)
     -h, --help                   Prints help information
     -V, --version                Prints version information
 
 ARGS:
-    <FILE>    File to tail
+    <FILE>    File to tail. STDIN by default
 ```
+
+## Features
+
+- Supports few standard formats with which auto detection is done when parsing logs.
+- Supports specifying custom format for parsing in case it is a non-standard format. See [here](https://docs.rs/chrono/0.4.6/chrono/format/strftime/index.html#specifiers) for formats.
+- Autodetect source timezone if present in logs. Example (`2014-11-28T12:00:09+0100` is CET)
+- Output logs to local timezone by default
+
+## Demo
+
+![demo](/demo/tztail.gif)
+
+## Autodetectable formats
+
+Most used autodetectable formats
+
+| Name                  | Example                         |
+| --------------------- | ------------------------------- |
+| RFC2822               | Fri, 28 Nov 2014 12:00:09 +0000 |
+| RFC3339               | 2014-11-28T12:00:09+0000        |
+| Nginx Log format      | 04/Nov/2018:12:13:49            |
 
 ## Usecase
 
@@ -53,19 +73,6 @@ $ cat somelog | tztail -t Asia/Kolkata -f "%Y-%m-%d %H:%M:%S"
 2018-11-04 01:37:20 mvcc: finished scheduled compaction at 106120 (took 933.25µs)
 ```
 
-## Features
-
-- Supports few standard formats with which auto detection is done when parsing logs.
-- Supports specifying custom format for parsing in case it is a non-standard format. See [here](https://docs.rs/chrono/0.4.6/chrono/format/strftime/index.html#specifiers) for formats.
-
-## Autodetectable formats
-
-| Name                  | Example                         |
-| --------------------- | ------------------------------- |
-| RFC2822               | Fri, 28 Nov 2014 12:00:09 +0000 |
-| RFC3339               | 2014-11-28T12:00:09+00:00       |
-| Nginx Log format      | 04/Nov/2018:12:13:49            |
-| %Y-%m-%d %H:%M:%S.%6f | 2018-11-03 12:19:36.361297      |
 
 ## Building from source
 
@@ -90,8 +97,8 @@ $ cargo test
 * [x] Support all standard datetime formats.
 * [x] Allow custom datetime format.
 * [x] Add option to read from file.
-* [ ] Allow specifying source timezone (currently supports only UTC).
-* [ ] Auto-detect source timezone if possible.
+* [x] Auto-detect source timezone if possible.
+* [ ] Allow specifying source timezone explicitely.
 * [ ] Support GCP/AWS cloud logging formats.
 * [ ] Performance optimizations
 * [ ] Add support to pass time-window which would only show the logs in that time period
