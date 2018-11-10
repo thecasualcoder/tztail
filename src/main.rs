@@ -2,21 +2,21 @@
 extern crate clap;
 extern crate chrono;
 extern crate chrono_tz;
-#[macro_use(lazy_static)]
-extern crate lazy_static;
+extern crate hourglass;
 extern crate regex;
-
-mod parser;
+mod converter;
+mod format;
 
 use clap::{App, AppSettings, Arg};
-use parser::Parser;
+use converter::Converter;
 use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
 use std::process;
 
-fn run<P: Parser>(filename: Option<&str>, p: P) -> Result<bool, &str> {
+fn run(filename: Option<&str>, tz: Option<&str>, fmt: Option<&str>) -> Result<bool, String> {
+    let c = Converter::new(tz, fmt)?;
     let stdin = io::stdin();
 
     let reader: Box<dyn BufRead> = match filename {
@@ -29,10 +29,10 @@ fn run<P: Parser>(filename: Option<&str>, p: P) -> Result<bool, &str> {
 
     for line in reader.lines() {
         match line {
-            Ok(content) => println!("{}", p.parse(&content)),
+            Ok(content) => println!("{}", c.convert(&content)),
             Err(err) => {
                 eprintln!("{}: {}", "Exited while reading lines", err.description());
-                return Err("Exited while reading lines");
+                return Err(format!("Exited while reading lines: {}", err));
             }
         }
     }
@@ -48,15 +48,15 @@ fn main() {
         .setting(AppSettings::UnifiedHelpMessage)
         .version(crate_version!())
         .about("tztail (TimeZoneTAIL) allows you to view logs in the timezone you want")
-        .arg(Arg::with_name("FILE").help("File to tail"))
+        .arg(Arg::with_name("FILE").help("File to tail. STDIN by default"))
         .arg(
             Arg::with_name("timezone")
                 .long("timezone")
                 .short("t")
                 .value_name("TIMEZONE")
-                .required(true)
+                .required(false)
                 .takes_value(true)
-                .help("Sets the timezone in which output should be printed"),
+                .help("Sets the timezone in which output should be printed. (Default: local timezone)"),
         ).arg(
             Arg::with_name("format")
                 .long("format")
@@ -64,18 +64,15 @@ fn main() {
                 .value_name("FORMAT")
                 .required(false)
                 .takes_value(true)
-                .help("Custom format for parsing dates"),
+                .help("Custom format for parsing dates. (Default: autodetected patterns)"),
         );
 
     let matches = app.get_matches();
-    let timezone = matches.value_of("timezone").expect("Please pass timezone");
+    let timezone = matches.value_of("timezone");
     let custom_format = matches.value_of("format");
     let filename = matches.value_of("FILE");
 
-    let result = match custom_format {
-        Some(format) => run(filename, parser::new_fixedformatutcparser(timezone, format)),
-        None => run(filename, parser::new_utcparser(timezone)),
-    };
+    let result = run(filename, timezone, custom_format);
 
     match result {
         Err(error) => {

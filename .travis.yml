@@ -1,4 +1,5 @@
 language: rust
+sudo: required
 
 rust:
   - stable
@@ -10,6 +11,16 @@ matrix:
     - rust: nightly
   fast_finish: true
 
+env:
+  global:
+    - TZ=Asia/Kolkata
+
+before_script:
+  - echo 'Asia/Kolkata' | sudo tee /etc/timezone
+  - sudo dpkg-reconfigure --frontend noninteractive tzdata
+  - sudo ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+
 script:
-  - cargo build --verbose --all
-  - cargo test --verbose --all
+  - date
+  - cargo build --all
+  - cargo test --all
