@@ -105,7 +105,7 @@ $ cargo test
 * [x] Allow custom datetime format.
 * [x] Add option to read from file.
 * [x] Auto-detect source timezone if possible.
-* [ ] Allow specifying source timezone explicitely.
+* [ ] Allow specifying source timezone explicitly.
 * [ ] Support GCP/AWS cloud logging formats.
 * [ ] Performance optimizations
 * [ ] Add support to pass time-window which would only show the logs in that time period
