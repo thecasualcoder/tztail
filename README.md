@@ -47,11 +47,11 @@ ARGS:
 
 Most used autodetectable formats
 
-| Name                  | Example                         |
-| --------------------- | ------------------------------- |
-| RFC2822               | Fri, 28 Nov 2014 12:00:09 +0000 |
-| RFC3339               | 2014-11-28T12:00:09+0000        |
-| Nginx Log format      | 04/Nov/2018:12:13:49            |
+| Name             | Example                         |
+| ---------------- | ------------------------------- |
+| RFC2822          | Fri, 28 Nov 2014 12:00:09 +0000 |
+| RFC3339          | 2014-11-28T12:00:09+0000        |
+| Nginx Log format | 04/Nov/2018:12:13:49            |
 
 ## Usecase
 
@@ -81,7 +81,6 @@ $ cat somelog | tztail -t Asia/Kolkata -f "%Y-%m-%d %H:%M:%S"
 2018-11-04 01:37:20 mvcc: finished scheduled compaction at 106120 (took 933.25µs)
 ```
 
-
 ## Building from source
 
 Checkout the code and build locally
@@ -102,11 +101,11 @@ $ cargo test
 
 ## Roadmap
 
-* [x] Support all standard datetime formats.
-* [x] Allow custom datetime format.
-* [x] Add option to read from file.
-* [x] Auto-detect source timezone if possible.
-* [ ] Allow specifying source timezone explicitly.
-* [ ] Support GCP/AWS cloud logging formats.
-* [ ] Performance optimizations
-* [ ] Add support to pass time-window which would only show the logs in that time period
+- [x] Support all standard datetime formats.
+- [x] Allow custom datetime format.
+- [x] Add option to read from file.
+- [x] Auto-detect source timezone if possible.
+- [ ] Allow specifying source timezone explicitly.
+- [ ] Support GCP/AWS cloud logging formats.
+- [ ] Performance optimizations
+- [ ] Add support to pass time-window which would only show the logs in that time period
