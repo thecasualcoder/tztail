@@ -149,6 +149,8 @@ fn _chrono(input: &str) -> String {
 
 #[cfg(test)]
 mod converter_tests {
+    use chrono::DateTime;
+
     #[test]
     fn test_new() {
         match super::Converter::new(Some("Random/str"), None) {
@@ -182,6 +184,32 @@ mod converter_tests {
             outputs: Vec<&'a str>,
         };
 
+        fn convert_utc_to_localtimezone(input: &str, format: &str) -> String {
+            use chrono::TimeZone;
+
+            let local_timezone = super::Local::now().timezone();
+            return super::Utc
+                .datetime_from_str(input, format)
+                .unwrap()
+                .with_timezone(&local_timezone)
+                .format(format)
+                .to_string();
+        };
+
+        fn convert_to_localtimezone(input: &str, format: &str) -> String {
+            let local_timezone = super::Local::now().timezone();
+            return DateTime::parse_from_str(input, format)
+                .unwrap()
+                .with_timezone(&local_timezone)
+                .format(format)
+                .to_string();
+        };
+
+        let local_timezone_case_1 =
+            convert_utc_to_localtimezone("2002-10-02 15:00:00", "%Y-%m-%d %H:%M:%S");
+        let local_timezone_case_2 =
+            convert_to_localtimezone("2012-07-24T23:14:29-0700", "%Y-%m-%dT%H:%M:%S%z");
+
         let testcases = vec![
             TestCase {
                 timezone: Some("Asia/Kolkata"),
@@ -197,9 +225,8 @@ mod converter_tests {
                     "2018-08-08 18:02:15 +0530",
                 ],
             },
-            // This test can pass only if local timezone is Asia/Kolkata
             TestCase {
-                timezone: None,
+                timezone: Some("Asia/Kolkata"),
                 format: Some("%Y-%m-%d %H:%M:%S"),
                 inputs: vec!["2018-11-03 22:39:33 Some random log"],
                 outputs: vec!["2018-11-04 04:09:33 Some random log"],
@@ -238,18 +265,8 @@ mod converter_tests {
             TestCase {
                 timezone: None,
                 format: None,
-                inputs: vec![
-                    "Fri, 28 Nov 2014 12:00:09 +0300",
-                    "2012-07-24T23:14:29-0700",
-                    "2002-10-02T15:00:00Z",
-                    "2002-10-02 15:00:00",
-                ],
-                outputs: vec![
-                    "Fri, 28 Nov 2014 14:30:09 +0530",
-                    "2012-07-25T11:44:29+0530",
-                    "2002-10-02T20:30:00Z",
-                    "2002-10-02 20:30:00",
-                ],
+                inputs: vec!["2002-10-02 15:00:00", "2012-07-24T23:14:29-0700"],
+                outputs: vec![&local_timezone_case_1, &local_timezone_case_2],
             },
         ];
 
