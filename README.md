@@ -24,7 +24,8 @@ USAGE:
 
 OPTIONS:
     -t, --timezone <TIMEZONE>    Sets the timezone in which output should be printed. (Default: local timezone)
-    -f, --format <FORMAT>        Custom format for parsing dates. (Default: autodetected patterns)
+    -f, --follow                 Follow the file indefinitely as changes are added. (Default: Off)
+        --format <FORMAT>        Custom format for parsing dates. (Default: autodetected patterns)
     -h, --help                   Prints help information
     -V, --version                Prints version information
 
