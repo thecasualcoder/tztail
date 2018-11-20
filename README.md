@@ -84,7 +84,7 @@ $ cat somelog | tztail -t Asia/Kolkata -f "%Y-%m-%d %H:%M:%S"
 
 ## Building from source
 
-Checkout the code and build locally
+Checkout the code and build locally. Needs rust compiler 1.30 or above.
 
 ```bash
 $ git clone https://github.com/thecasualcoder/tztail
