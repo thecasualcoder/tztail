@@ -3,14 +3,12 @@ name = "tztail"
 version = "1.1.0"
 authors = ["Aswin Karthik <aswinkarthik93@gmail.com>"]
 description = "tztail (TimeZoneTAIL) allows you to view logs in the timezone you want"
-license = "MIT"
 license-file = "LICENSE-MIT"
 documentation = "https://github.com/thecasualcoder/tztail/blob/master/README.md"
 repository= "https://github.com/thecasualcoder/tztail"
 
 [dependencies]
 regex = "1"
-hourglass = "0.*"
 chrono = "0.4"
 chrono-tz = "0.5"
 

@@ -2,7 +2,6 @@
 extern crate clap;
 extern crate chrono;
 extern crate chrono_tz;
-extern crate hourglass;
 extern crate regex;
 mod converter;
 mod format;
