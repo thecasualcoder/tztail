@@ -15,3 +15,8 @@ chrono-tz = "0.5"
 [dependencies.clap]
 version = "2"
 features = ["suggestions", "color", "wrap_help"]
+
+[dev-dependencies]
+lazy_static = "1.2.0"
+escargot = "0.3.1"
+assert_cmd = "0.10.2"
