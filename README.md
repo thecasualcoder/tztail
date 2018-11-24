@@ -7,16 +7,23 @@ tztail (TimeZoneTAIL) allows you to view logs in the timezone you want. Its tail
 
 ## Install
 
-```
+_Using Homebrew_
+
+```bash
 brew tap thecasualcoder/stable
 brew install tztail
+```
+
+_Using Cargo_
+
+```bash
+cargo install tztail
 ```
 
 ## Usage
 
 ```bash
 $ tztail --help
-tztail 1.1.0
 tztail (TimeZoneTAIL) allows you to view logs in the timezone you want
 
 USAGE:
@@ -52,7 +59,7 @@ Most used autodetectable formats
 | ---------------- | ------------------------------- |
 | RFC2822          | Fri, 28 Nov 2014 12:00:09 +0000 |
 | RFC3339          | 2014-11-28T12:00:09+0000        |
-| Nginx Log format | 04/Nov/2018:12:13:49            |
+| Nginx Log format | 04/Nov/2018:12:13:49 +0000      |
 
 ## Usecase
 
@@ -77,7 +84,7 @@ $ cat somelog # A log in non-standard format
 2018-11-03 20:07:20 mvcc: store.index: compact 106120
 2018-11-03 20:07:20 mvcc: finished scheduled compaction at 106120 (took 933.25µs)
 
-$ cat somelog | tztail -t Asia/Kolkata -f "%Y-%m-%d %H:%M:%S"
+$ cat somelog | tztail -t Asia/Kolkata --format "%Y-%m-%d %H:%M:%S"
 2018-11-04 01:37:20 mvcc: store.index: compact 106120
 2018-11-04 01:37:20 mvcc: finished scheduled compaction at 106120 (took 933.25µs)
 ```
@@ -99,14 +106,3 @@ $ cargo install
 # To run tests
 $ cargo test
 ```
-
-## Roadmap
-
-- [x] Support all standard datetime formats.
-- [x] Allow custom datetime format.
-- [x] Add option to read from file.
-- [x] Auto-detect source timezone if possible.
-- [ ] Allow specifying source timezone explicitly.
-- [ ] Support GCP/AWS cloud logging formats.
-- [ ] Performance optimizations
-- [ ] Add support to pass time-window which would only show the logs in that time period
