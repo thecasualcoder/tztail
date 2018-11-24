@@ -26,7 +26,7 @@ fn run(args: AppArgs) -> Result<bool, String> {
         filename,
         custom_format: fmt,
         timezone: tz,
-        should_follow: follow
+        should_follow: follow,
     } = args;
 
     let c = Converter::new(tz, fmt)?;
@@ -48,16 +48,16 @@ fn run(args: AppArgs) -> Result<bool, String> {
                 Ok(bytes) if bytes > 0 => {
                     println!("{}", c.convert(&buf.trim_end()));
                     buf.clear();
-                },
+                }
                 Ok(_) => (),
-                Err(err) => return handle_err(err)
+                Err(err) => return handle_err(err),
             }
         }
     } else {
         for line in reader.lines() {
             match line {
                 Ok(content) => println!("{}", c.convert(&content)),
-                Err(err) => return handle_err(err)
+                Err(err) => return handle_err(err),
             }
         }
     }
@@ -109,7 +109,7 @@ fn main() {
         filename: matches.value_of("FILE"),
         custom_format: matches.value_of("format"),
         timezone: matches.value_of("timezone"),
-        should_follow: matches.is_present("follow")
+        should_follow: matches.is_present("follow"),
     };
 
     let result = run(args);
