@@ -49,12 +49,19 @@ fn run(args: Args) -> Result<bool, String> {
     let mut has_next = true;
     let mut buf = String::new();
 
-    write!(writer, "{}", c.convert(reader.first_line()));
+    match write!(writer, "{}", c.convert(reader.first_line())) {
+        Ok(_) => (),
+        Err(err) => return handle_err(err),
+    };
 
     while follow || has_next {
         match reader.read_line(&mut buf) {
             Ok(bytes) if bytes > 0 => {
-                write!(writer, "{}", c.convert(&buf));
+                match write!(writer, "{}", c.convert(&buf)) {
+                    Ok(_) => (),
+                    Err(err) => return handle_err(err),
+                }
+
                 buf.clear();
                 has_next = true;
             }

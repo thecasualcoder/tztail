@@ -61,13 +61,18 @@ fn test_target_timezone() {
 
 #[test]
 fn test_read_from_file() {
-    let local_time = convert_to_localtimezone("2018-11-21T17:26:30+0700", "%Y-%m-%dT%H:%M:%S%z");
+    let local_time = (
+        convert_to_localtimezone("2018-11-21T17:26:30+0700", "%Y-%m-%dT%H:%M:%S%z"),
+        convert_to_localtimezone("2018-11-21T19:56:30+0530", "%Y-%m-%dT%H:%M:%S%z"),
+    );
     tztail()
         .arg("tests/inputs/test_read_from_file.txt")
         .assert()
         .success()
-        .stdout(format!("{} postgres parameters not changed", local_time))
-        .stderr("");
+        .stdout(format!(
+            "{} postgres parameters not changed\n{} postgres parameters not changed",
+            local_time.0, local_time.1,
+        )).stderr("");
 }
 
 #[test]
