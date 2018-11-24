@@ -19,10 +19,13 @@ pub struct Converter {
 // They get converted into Regexes and are validated
 const DEFAULT_FORMATS: &[&str] = &[
     "%Y-%m-%dT%H:%M:%S%z",      // 2014-11-28T12:00:09+0000
-    "%d/%b/%Y:%H:%M:%S %z",     // 04/Nov/2018:12:13:49 +0000
-    "%d/%b/%Y:%H:%M:%S %:z",    // 04/Nov/2018:12:13:49 +00:00
+    "%Y-%m-%d %H:%M:%S%z",      // 2014-11-28 12:00:09+0000
+    "%Y-%m-%dT%H:%M:%S %z",     // 2014-11-28T12:00:09 +0000
+    "%Y-%m-%d %H:%M:%S %z",     // 2014-11-28 12:00:09 +0000
+    "%d/%b/%Y:%H:%M:%S %z",     // 04/Nov/2018:12:13:49 +0000 Nginx
+    "%d/%b/%Y:%H:%M:%S%.3f %z", // 04/Nov/2018:12:13:49.334 +0000 Nginx
+    "%d/%b/%Y:%H:%M:%S",        // 04/Nov/2018:12:13:49 HAProxy
     "%a, %d %b %Y %H:%M:%S %z", // Fri, 28 Nov 2014 12:00:09 +0000
-    "%a, %d %b %Y %H:%M:%S %Z", // Fri, 28 Nov 2014 12:00:09 UTC
     "%Y-%m-%dT%H:%M:%SZ",       // 2014-11-28T12:00:09Z
     "%Y-%m-%dT%H:%M:%S",        // 2014-11-28T12:00:09
     "%Y-%m-%d %H:%M:%S",        // 2014-11-28 12:00:09
@@ -237,31 +240,28 @@ mod converter_tests {
                 inputs: vec![
                     "Fri, 28 Nov 2014 12:00:09 +0000",
                     "Thu, 27 Nov 2014 01:00:09 +0530",
-                    "Wed, 26 Nov 2014 14:00:09 +01:00",
+                    "14/Nov/2018:22:14:27 -0800",
+                    "2014-11-28T12:00:09+0500",
+                    "2014-11-28 12:00:09+0500",
+                    "2014-11-28T12:00:09 +0500",
+                    "2014-11-28 12:00:09 +0500",
+                    "04/Nov/2018:12:13:49 +0500 Nginx",
+                    "04/Nov/2018:12:13:49.334 +0500 Nginx",
+                    "04/Nov/2018:12:13:49 HAProxy",
                 ],
                 outputs: vec![
                     "Fri, 28 Nov 2014 13:00:09 +0100",
                     "Wed, 26 Nov 2014 20:30:09 +0100",
-                    "Wed, 26 Nov 2014 14:00:09 +01:00",
+                    "15/Nov/2018:07:14:27 +0100",
+                    "2014-11-28T08:00:09+0100",
+                    "2014-11-28 08:00:09+0100",
+                    "2014-11-28T08:00:09 +0100",
+                    "2014-11-28 08:00:09 +0100",
+                    "04/Nov/2018:08:13:49 +0100 Nginx",
+                    "04/Nov/2018:08:13:49.334 +0100 Nginx",
+                    "04/Nov/2018:13:13:49 HAProxy",
                 ],
             },
-            // Issue: https://github.com/chronotope/chrono/issues/288
-            // TestCase {
-            //     timezone: Some("Europe/Paris"),
-            //     format: None,
-            //     inputs: vec![
-            //         "Fri, 28 Nov 2014 12:00:09 GMT",
-            //         "Thu, 27 Nov 2014 01:00:09 IST",
-            //         "Wed, 26 Nov 2014 14:00:09 CET",
-            //     ],
-            //     outputs: vec![
-            //         "Fri, 28 Nov 2014 13:00:09 CET",
-            //         "Wed, 26 Nov 2014 20:30:09 CET",
-            //         "Wed, 26 Nov 2014 14:00:09 CET",
-            //     ],
-            // },
-
-            // This test can pass only if local timezone is Asia/Kolkata
             TestCase {
                 timezone: None,
                 format: None,
