@@ -12,6 +12,7 @@ use converter::Converter;
 use reader::*;
 use std::error::Error;
 use std::io;
+use std::io::Write;
 use std::process;
 
 struct Args<'a> {
@@ -31,6 +32,8 @@ fn run(args: Args) -> Result<bool, String> {
 
     let c = Converter::new(tz, fmt)?;
     let stdin = io::stdin();
+    let stdout = io::stdout();
+    let mut writer = stdout.lock();
 
     let reader = match filename {
         Some("-") => InputReader::new(Input::Stdin(&stdin)),
@@ -46,12 +49,12 @@ fn run(args: Args) -> Result<bool, String> {
     let mut has_next = true;
     let mut buf = String::new();
 
-    print!("{}", c.convert(reader.first_line()));
+    write!(writer, "{}", c.convert(reader.first_line()));
 
     while follow || has_next {
         match reader.read_line(&mut buf) {
             Ok(bytes) if bytes > 0 => {
-                print!("{}", c.convert(&buf));
+                write!(writer, "{}", c.convert(&buf));
                 buf.clear();
                 has_next = true;
             }
