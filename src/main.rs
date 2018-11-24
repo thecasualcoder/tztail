@@ -15,10 +15,10 @@ use std::io;
 use std::process;
 
 struct Args<'a> {
-    pub filename: Option<&'a str>,
-    pub custom_format: Option<&'a str>,
-    pub timezone: Option<&'a str>,
-    pub should_follow: bool,
+    filename: Option<&'a str>,
+    custom_format: Option<&'a str>,
+    timezone: Option<&'a str>,
+    should_follow: bool,
 }
 
 fn run(args: Args) -> Result<bool, String> {
@@ -33,6 +33,7 @@ fn run(args: Args) -> Result<bool, String> {
     let stdin = io::stdin();
 
     let reader = match filename {
+        Some("-") => InputReader::new(Input::Stdin(&stdin)),
         Some(name) => InputReader::new(Input::File(&name)),
         None => InputReader::new(Input::Stdin(&stdin)),
     };
