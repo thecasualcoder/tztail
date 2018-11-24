@@ -42,7 +42,7 @@ fn test_stdin() {
         .buffer(format!("[{}] PUT /some/nginxurl", remote_time))
         .assert()
         .success()
-        .stdout(format!("[{}] PUT /some/nginxurl\n", local_time))
+        .stdout(format!("[{}] PUT /some/nginxurl", local_time))
         .stderr("");
 }
 
@@ -55,7 +55,7 @@ fn test_target_timezone() {
         .buffer("2018-11-21T22:48:14+0100: This is a log")
         .assert()
         .success()
-        .stdout("2018-11-21T13:48:14-0800: This is a log\n")
+        .stdout("2018-11-21T13:48:14-0800: This is a log")
         .stderr("");
 }
 
@@ -66,7 +66,7 @@ fn test_read_from_file() {
         .arg("tests/inputs/test_read_from_file.txt")
         .assert()
         .success()
-        .stdout(format!("{} postgres parameters not changed\n", local_time))
+        .stdout(format!("{} postgres parameters not changed", local_time))
         .stderr("");
 }
 
@@ -81,7 +81,7 @@ fn test_custom_format() {
         .buffer("2018/11/21 22:48:14 +03:00: This is a custom formatted log")
         .assert()
         .success()
-        .stdout(format!("{}: This is a custom formatted log\n", local_time))
+        .stdout(format!("{}: This is a custom formatted log", local_time))
         .stderr("");
 }
 
@@ -96,6 +96,6 @@ fn test_default_utc() {
         .buffer("2018/11/21T22:48:14: This is a log in UTC")
         .assert()
         .success()
-        .stdout("2018/11/22T04:18:14: This is a log in UTC\n")
+        .stdout("2018/11/22T04:18:14: This is a log in UTC")
         .stderr("");
 }

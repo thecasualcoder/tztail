@@ -5,24 +5,24 @@ extern crate chrono_tz;
 extern crate regex;
 mod converter;
 mod format;
+mod reader;
 
 use clap::{App, AppSettings, Arg};
 use converter::Converter;
+use reader::*;
 use std::error::Error;
-use std::fs::File;
 use std::io;
-use std::io::{BufRead, BufReader};
 use std::process;
 
-struct AppArgs<'a> {
-    filename: Option<&'a str>,
-    custom_format: Option<&'a str>,
-    timezone: Option<&'a str>,
-    should_follow: bool,
+struct Args<'a> {
+    pub filename: Option<&'a str>,
+    pub custom_format: Option<&'a str>,
+    pub timezone: Option<&'a str>,
+    pub should_follow: bool,
 }
 
-fn run(args: AppArgs) -> Result<bool, String> {
-    let AppArgs {
+fn run(args: Args) -> Result<bool, String> {
+    let Args {
         filename,
         custom_format: fmt,
         timezone: tz,
@@ -32,33 +32,32 @@ fn run(args: AppArgs) -> Result<bool, String> {
     let c = Converter::new(tz, fmt)?;
     let stdin = io::stdin();
 
-    let mut reader: Box<dyn BufRead> = match filename {
-        Some(name) => {
-            let file = File::open(name).expect("Error opening file");
-            Box::new(BufReader::new(file))
-        }
-        None => Box::new(stdin.lock()),
+    let reader = match filename {
+        Some(name) => InputReader::new(Input::File(&name)),
+        None => InputReader::new(Input::Stdin(&stdin)),
     };
 
-    if follow {
-        let mut buf = String::new();
+    let mut reader = match reader {
+        Ok(r) => r,
+        Err(err) => return handle_err(err),
+    };
 
-        loop {
-            match reader.read_line(&mut buf) {
-                Ok(bytes) if bytes > 0 => {
-                    println!("{}", c.convert(&buf.trim_end()));
-                    buf.clear();
-                }
-                Ok(_) => (),
-                Err(err) => return handle_err(err),
+    let mut has_next = true;
+    let mut buf = String::new();
+
+    print!("{}", c.convert(reader.first_line()));
+
+    while follow || has_next {
+        match reader.read_line(&mut buf) {
+            Ok(bytes) if bytes > 0 => {
+                print!("{}", c.convert(&buf));
+                buf.clear();
+                has_next = true;
             }
-        }
-    } else {
-        for line in reader.lines() {
-            match line {
-                Ok(content) => println!("{}", c.convert(&content)),
-                Err(err) => return handle_err(err),
+            Ok(_) => {
+                has_next = false;
             }
+            Err(err) => return handle_err(err),
         }
     }
 
@@ -105,7 +104,7 @@ fn main() {
         );
 
     let matches = app.get_matches();
-    let args = AppArgs {
+    let args = Args {
         filename: matches.value_of("FILE"),
         custom_format: matches.value_of("format"),
         timezone: matches.value_of("timezone"),
