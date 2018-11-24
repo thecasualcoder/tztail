@@ -1,18 +1,45 @@
 language: rust
+
 sudo: required
 
 rust:
-  - stable
   - beta
   - nightly
+  - 1.30.0 # minimum supported version
+
+env:
+  global:
+    - PROJECT_NAME=tztail
 
 matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
-
+  include:
+    - os: linux
+      rust: stable
+      env: TARGET=x86_64-linux
+    - os: osx
+      rust: stable
+      env: TARGET=x86_64-darwin
 
 script:
   - date
   - cargo build --all
   - cargo test --all
+
+before_deploy:
+  - cargo build --release
+  - mv ./target/release/tztail ./
+  - tar cvfz $PROJECT_NAME-$TRAVIS_TAG-$TARGET.tar.gz ./tztail
+
+deploy:
+  provider: releases
+  api_key:
+    secure: Kh6rCM6lWjDa/sOE16oh1+HMq7fagupzG89mtJ4LZCp1BubdraN6xfi3exeVycoxumsiOqFpP3A5EaeU/3xRbO3d/9zBKM0rGr7oPIxWn8O/NX4bPjcGXBlAAtn1knBqL37liAj6mJn1vN5kwOWZLwWoFkVbWhtv/EUGKB8Zbv4oSJ3itBcli1xppArPVnEFAartivl2erRdVCSUDWY5YIgUYQyW3vWz/eTvpmlQIJfMGMycvHktclJcjLVMynPougHWYnhwZ0+mVxLl4DVaiD/km+HdP2nzIrfAo0dTfY3lvvWaV2L8XvCEzCaVqN7SpE49IMvUiA4YdEEmWGco+B5blx4nSV1cQ7F5EuQyh5QWrSAYrOO8tZSOl9+WmA1O4jo6iBOQQwS46claX05LJy8Q+izUDwrPYbyXRn3b9DC5WWATWfHeyI9yz7sLyQJ+uD/9k7ve9IUM234KJrjdcHKV+lW+XYaWV+fH0GN45NKi3t06+RT6mj+nwECTtvZPeV8+nwJ4vDIxWofRSVKOg5CYWEB8wxY3BsYqppbgbOZ6NoR8LPaFjaMmc0Amit53ZJq7d7XB0YgJCb2fjihu4Ed77hl1s4bLz577gTmc0udaN9tzdyBrijbuHer8IqVX39RL/aslnGbLvURXnQtPGaWBO7RqL8B3cjqM6C6w0QE=
+  file: '$PROJECT_NAME-$TRAVIS_TAG-$TARGET.tar.gz'
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: thecasualcoder/tztail
+    condition: $TRAVIS_RUST_VERSION = stable && $TARGET != ""
