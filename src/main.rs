@@ -1,12 +1,17 @@
 #[macro_use]
 extern crate clap;
+extern crate atty;
 extern crate chrono;
 extern crate chrono_tz;
+extern crate colored;
 extern crate regex;
+mod args;
 mod converter;
 mod format;
+mod output_formatter;
 mod reader;
 
+use args::Args;
 use clap::{App, AppSettings, Arg};
 use converter::Converter;
 use reader::*;
@@ -15,19 +20,13 @@ use std::io;
 use std::io::Write;
 use std::process;
 
-struct Args<'a> {
-    filename: Option<&'a str>,
-    custom_format: Option<&'a str>,
-    timezone: Option<&'a str>,
-    should_follow: bool,
-}
-
 fn run(args: Args) -> Result<bool, String> {
     let Args {
         filename,
         custom_format: fmt,
         timezone: tz,
         should_follow: follow,
+        color_choice,
     } = args;
 
     let c = Converter::new(tz, fmt)?;
@@ -49,7 +48,13 @@ fn run(args: Args) -> Result<bool, String> {
     let mut has_next = true;
     let mut buf = String::new();
 
-    match write!(writer, "{}", c.convert(reader.first_line())) {
+    let formatter = color_choice.build_formatter();
+
+    match write!(
+        writer,
+        "{}",
+        formatter.format(c.convert(reader.first_line()))
+    ) {
         Ok(_) => (),
         Err(err) => return handle_err(err),
     };
@@ -57,7 +62,7 @@ fn run(args: Args) -> Result<bool, String> {
     while follow || has_next {
         match reader.read_line(&mut buf) {
             Ok(bytes) if bytes > 0 => {
-                match write!(writer, "{}", c.convert(&buf)) {
+                match write!(writer, "{}", formatter.format(c.convert(&buf))) {
                     Ok(_) => (),
                     Err(err) => return handle_err(err),
                 }
@@ -112,17 +117,16 @@ fn main() {
                 .required(false)
                 .takes_value(true)
                 .help("Custom format for parsing dates. (Default: autodetected patterns)")
+        ).arg(
+            Arg::with_name("color")
+                .long("color")
+                .value_name("COLOR_CHOICE")
+                .possible_values(&["never", "auto", "always"])
+                .required(false)
+                .help("Controls when to use color")
         );
 
-    let matches = app.get_matches();
-    let args = Args {
-        filename: matches.value_of("FILE"),
-        custom_format: matches.value_of("format"),
-        timezone: matches.value_of("timezone"),
-        should_follow: matches.is_present("follow"),
-    };
-
-    let result = run(args);
+    let result = Args::parse(&app.get_matches()).and_then(run);
 
     match result {
         Err(error) => {
