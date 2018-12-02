@@ -14,6 +14,14 @@ pub struct Converter {
     local: DateTime<Local>,
 }
 
+#[derive(PartialEq, Debug)]
+pub struct TimedLog<'a> {
+    pub original_time: Option<String>,
+    pub target_time: Option<String>,
+    pub log: &'a str,
+    pub converted: bool,
+}
+
 // The default auto-detectable formats supported.
 // Add standard formats here
 // They get converted into Regexes and are validated
@@ -77,8 +85,7 @@ impl Converter {
     // TODO: the formats are looped sequentially. Use RegexSet to parallely match all expressions
     // TODO: If there is a hit in autodetected formats, prioritize it
     // TODO: Allow target timezone configurable
-    pub fn convert(&self, input: &str) -> String {
-        let original_str = String::from(input);
+    pub fn convert<'a>(&self, input: &'a str) -> TimedLog<'a> {
         for format in &self.formats {
             match format.find(input) {
                 Some(found) => {
@@ -92,7 +99,12 @@ impl Converter {
                                     "Error when parsing from string that is datetime aware: {}",
                                     err
                                 );
-                                return original_str;
+                                return TimedLog {
+                                    converted: false,
+                                    log: input,
+                                    original_time: None,
+                                    target_time: None,
+                                };
                             }
                         };
 
@@ -104,13 +116,23 @@ impl Converter {
                                 .to_string(),
                         };
 
-                        return input.replace(source_datetime, &target_datetime);
+                        return TimedLog {
+                            converted: true,
+                            original_time: Some(String::from(source_datetime)),
+                            target_time: Some(target_datetime),
+                            log: input,
+                        };
                     } else {
                         let dt = match Utc.datetime_from_str(source_datetime, format.fmt()) {
                             Ok(dt) => dt,
                             Err(err) => {
                                 eprintln!("Error when parsing using UTC: {}", err);
-                                return original_str;
+                                return TimedLog {
+                                    converted: false,
+                                    log: input,
+                                    original_time: None,
+                                    target_time: None,
+                                };
                             }
                         };
 
@@ -121,7 +143,13 @@ impl Converter {
                                 .format(format.fmt())
                                 .to_string(),
                         };
-                        return input.replace(source_datetime, &target_datetime);
+
+                        return TimedLog {
+                            converted: true,
+                            original_time: Some(String::from(source_datetime)),
+                            target_time: Some(target_datetime),
+                            log: input,
+                        };
                     }
                 }
                 None => {
@@ -129,7 +157,13 @@ impl Converter {
                 }
             }
         }
-        return original_str;
+
+        return TimedLog {
+            converted: false,
+            log: input,
+            original_time: None,
+            target_time: None,
+        };
     }
 }
 
@@ -180,11 +214,13 @@ mod converter_tests {
 
     #[test]
     fn test_convert() {
+        use super::TimedLog;
+
         struct TestCase<'a> {
             timezone: Option<&'a str>,
             format: Option<&'a str>,
             inputs: Vec<&'a str>,
-            outputs: Vec<&'a str>,
+            outputs: Vec<TimedLog<'a>>,
         };
 
         fn convert_utc_to_localtimezone(input: &str, format: &str) -> String {
@@ -216,6 +252,17 @@ mod converter_tests {
         let testcases = vec![
             TestCase {
                 timezone: Some("Asia/Kolkata"),
+                format: None,
+                inputs: vec!["A random log without out any time. It should be left untouched"],
+                outputs: vec![TimedLog {
+                    original_time: None,
+                    target_time: None,
+                    converted: false,
+                    log: "A random log without out any time. It should be left untouched",
+                }],
+            },
+            TestCase {
+                timezone: Some("Asia/Kolkata"),
                 format: Some("%Y-%m-%d %H:%M:%S %z"),
                 inputs: vec![
                     "2018-08-08 10:32:15 +0000",
@@ -223,16 +270,36 @@ mod converter_tests {
                     "2018-08-08 10:32:15 -0200",
                 ],
                 outputs: vec![
-                    "2018-08-08 16:02:15 +0530",
-                    "2018-03-03 09:02:15 +0530",
-                    "2018-08-08 18:02:15 +0530",
+                    TimedLog {
+                        log: "2018-08-08 10:32:15 +0000",
+                        original_time: Some(String::from("2018-08-08 10:32:15 +0000")),
+                        target_time: Some(String::from("2018-08-08 16:02:15 +0530")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2018-03-03 10:32:15 +0700",
+                        original_time: Some(String::from("2018-03-03 10:32:15 +0700")),
+                        target_time: Some(String::from("2018-03-03 09:02:15 +0530")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2018-08-08 10:32:15 -0200",
+                        original_time: Some(String::from("2018-08-08 10:32:15 -0200")),
+                        target_time: Some(String::from("2018-08-08 18:02:15 +0530")),
+                        converted: true,
+                    },
                 ],
             },
             TestCase {
                 timezone: Some("Asia/Kolkata"),
                 format: Some("%Y-%m-%d %H:%M:%S"),
                 inputs: vec!["2018-11-03 22:39:33 Some random log"],
-                outputs: vec!["2018-11-04 04:09:33 Some random log"],
+                outputs: vec![TimedLog {
+                    log: "2018-11-03 22:39:33 Some random log",
+                    original_time: Some(String::from("2018-11-03 22:39:33")),
+                    target_time: Some(String::from("2018-11-04 04:09:33")),
+                    converted: true,
+                }],
             },
             TestCase {
                 timezone: Some("Europe/Paris"),
@@ -250,23 +317,86 @@ mod converter_tests {
                     "04/Nov/2018:12:13:49 HAProxy",
                 ],
                 outputs: vec![
-                    "Fri, 28 Nov 2014 13:00:09 +0100",
-                    "Wed, 26 Nov 2014 20:30:09 +0100",
-                    "15/Nov/2018:07:14:27 +0100",
-                    "2014-11-28T08:00:09+0100",
-                    "2014-11-28 08:00:09+0100",
-                    "2014-11-28T08:00:09 +0100",
-                    "2014-11-28 08:00:09 +0100",
-                    "04/Nov/2018:08:13:49 +0100 Nginx",
-                    "04/Nov/2018:08:13:49.334 +0100 Nginx",
-                    "04/Nov/2018:13:13:49 HAProxy",
+                    TimedLog {
+                        log: "Fri, 28 Nov 2014 12:00:09 +0000",
+                        original_time: Some(String::from("Fri, 28 Nov 2014 12:00:09 +0000")),
+                        target_time: Some(String::from("Fri, 28 Nov 2014 13:00:09 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "Thu, 27 Nov 2014 01:00:09 +0530",
+                        original_time: Some(String::from("Thu, 27 Nov 2014 01:00:09 +0530")),
+                        target_time: Some(String::from("Wed, 26 Nov 2014 20:30:09 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "14/Nov/2018:22:14:27 -0800",
+                        original_time: Some(String::from("14/Nov/2018:22:14:27 -0800")),
+                        target_time: Some(String::from("15/Nov/2018:07:14:27 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2014-11-28T12:00:09+0500",
+                        original_time: Some(String::from("2014-11-28T12:00:09+0500")),
+                        target_time: Some(String::from("2014-11-28T08:00:09+0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2014-11-28 12:00:09+0500",
+                        original_time: Some(String::from("2014-11-28 12:00:09+0500")),
+                        target_time: Some(String::from("2014-11-28 08:00:09+0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2014-11-28T12:00:09 +0500",
+                        original_time: Some(String::from("2014-11-28T12:00:09 +0500")),
+                        target_time: Some(String::from("2014-11-28T08:00:09 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2014-11-28 12:00:09 +0500",
+                        original_time: Some(String::from("2014-11-28 12:00:09 +0500")),
+                        target_time: Some(String::from("2014-11-28 08:00:09 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "04/Nov/2018:12:13:49 +0500 Nginx",
+                        original_time: Some(String::from("04/Nov/2018:12:13:49 +0500")),
+                        target_time: Some(String::from("04/Nov/2018:08:13:49 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "04/Nov/2018:12:13:49.334 +0500 Nginx",
+                        original_time: Some(String::from("04/Nov/2018:12:13:49.334 +0500")),
+                        target_time: Some(String::from("04/Nov/2018:08:13:49.334 +0100")),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "04/Nov/2018:12:13:49 HAProxy",
+                        original_time: Some(String::from("04/Nov/2018:12:13:49")),
+                        target_time: Some(String::from("04/Nov/2018:13:13:49")),
+                        converted: true,
+                    },
                 ],
             },
             TestCase {
                 timezone: None,
                 format: None,
                 inputs: vec!["2002-10-02 15:00:00", "2012-07-24T23:14:29-0700"],
-                outputs: vec![&local_timezone_case_1, &local_timezone_case_2],
+                outputs: vec![
+                    TimedLog {
+                        log: "2002-10-02 15:00:00",
+                        original_time: Some(String::from("2002-10-02 15:00:00")),
+                        target_time: Some(String::from(local_timezone_case_1)),
+                        converted: true,
+                    },
+                    TimedLog {
+                        log: "2012-07-24T23:14:29-0700",
+                        original_time: Some(String::from("2012-07-24T23:14:29-0700")),
+                        target_time: Some(String::from(local_timezone_case_2)),
+                        converted: true,
+                    },
+                ],
             },
         ];
 
@@ -281,11 +411,11 @@ mod converter_tests {
 
             for i in 0..test.inputs.len() {
                 let input = test.inputs[i];
-                let expected_output = test.outputs[i];
+                let expected_output = &test.outputs[i];
 
                 let output = converter.convert(input);
 
-                assert_eq!(output, expected_output);
+                assert_eq!(output, *expected_output);
             }
         }
     }

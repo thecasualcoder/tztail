@@ -8,9 +8,11 @@ documentation = "https://github.com/thecasualcoder/tztail/blob/master/README.md"
 repository= "https://github.com/thecasualcoder/tztail"
 
 [dependencies]
-regex = "1"
+atty = "0.2"
 chrono = "0.4"
 chrono-tz = "0.5"
+colored = "1.6"
+regex = "1"
 
 [dependencies.clap]
 version = "2"
