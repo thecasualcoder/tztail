@@ -32,8 +32,13 @@ before_deploy:
   - cargo build --release
   - mv ./target/release/tztail ./
   - tar cvfz $PROJECT_NAME-$TRAVIS_TAG-$TARGET.tar.gz ./tztail
+  - PREVIOUS_TAG=$(git tag | tail -2 | head -1)
+  - export CHANGELOG=$(git log ${PREVIOUS_TAG}..${TRAVIS_TAG} --oneline)
+  - export GITHUB_RELEASE_NAME="v${TRAVIS_TAG}"
 
 deploy:
+  name: ${GITHUB_RELEASE_NAME}
+  body: "# Changelog\n\n${CHANGELOG}"
   provider: releases
   api_key:
     secure: Kh6rCM6lWjDa/sOE16oh1+HMq7fagupzG89mtJ4LZCp1BubdraN6xfi3exeVycoxumsiOqFpP3A5EaeU/3xRbO3d/9zBKM0rGr7oPIxWn8O/NX4bPjcGXBlAAtn1knBqL37liAj6mJn1vN5kwOWZLwWoFkVbWhtv/EUGKB8Zbv4oSJ3itBcli1xppArPVnEFAartivl2erRdVCSUDWY5YIgUYQyW3vWz/eTvpmlQIJfMGMycvHktclJcjLVMynPougHWYnhwZ0+mVxLl4DVaiD/km+HdP2nzIrfAo0dTfY3lvvWaV2L8XvCEzCaVqN7SpE49IMvUiA4YdEEmWGco+B5blx4nSV1cQ7F5EuQyh5QWrSAYrOO8tZSOl9+WmA1O4jo6iBOQQwS46claX05LJy8Q+izUDwrPYbyXRn3b9DC5WWATWfHeyI9yz7sLyQJ+uD/9k7ve9IUM234KJrjdcHKV+lW+XYaWV+fH0GN45NKi3t06+RT6mj+nwECTtvZPeV8+nwJ4vDIxWofRSVKOg5CYWEB8wxY3BsYqppbgbOZ6NoR8LPaFjaMmc0Amit53ZJq7d7XB0YgJCb2fjihu4Ed77hl1s4bLz577gTmc0udaN9tzdyBrijbuHer8IqVX39RL/aslnGbLvURXnQtPGaWBO7RqL8B3cjqM6C6w0QE=
