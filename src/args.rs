@@ -4,6 +4,7 @@ use output_formatter::OutputFormatter;
 
 type Result<T> = ::std::result::Result<T, String>;
 
+// To represent command line arguments
 pub struct Args<'a> {
     pub filename: Option<&'a str>,
     pub custom_format: Option<&'a str>,
@@ -13,6 +14,7 @@ pub struct Args<'a> {
 }
 
 impl<'a> Args<'a> {
+    // Parses ArgMatches into Args
     pub fn parse(matches: &'a ArgMatches) -> Result<Args<'a>> {
         Ok(Args {
             filename: matches.value_of("FILE"),
@@ -24,6 +26,10 @@ impl<'a> Args<'a> {
     }
 }
 
+// ColorChoice can be made from the command line
+// Auto is to decide automatically. If auto is selected, and stdout is a tty, it is colored else it is not.
+// Always to force using color
+// Never to force not using color
 pub enum ColorChoice {
     Auto,
     Always,
@@ -31,6 +37,7 @@ pub enum ColorChoice {
 }
 
 impl ColorChoice {
+    // Instantiate ColorChoice based on cli option chosen
     fn new(choice: Option<&str>) -> ColorChoice {
         match choice {
             Some("always") => ColorChoice::Always,
@@ -39,6 +46,7 @@ impl ColorChoice {
         }
     }
 
+    // Builder for output formatter from a ColorChoice
     pub fn build_formatter(&self) -> OutputFormatter {
         match self {
             ColorChoice::Auto => {
