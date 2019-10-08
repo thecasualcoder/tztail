@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/thecasualcoder/tztail.svg?branch=master)](https://travis-ci.org/thecasualcoder/tztail)
 [![crates.io](https://img.shields.io/crates/v/tztail.svg)](https://crates.io/crates/tztail)
+![Crates.io](https://img.shields.io/crates/d/tztail)
 
 tztail (TimeZoneTAIL) allows you to view logs in the timezone you want. Its tail with timezone.
 
